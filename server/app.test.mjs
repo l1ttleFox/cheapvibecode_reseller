@@ -32,6 +32,35 @@ test('balance is read using the buyer key, preserves zero and refreshes each req
   assert.equal((await fetch(base + '/api/account')).status, 401);
 });
 
+test('GitHub Pages can call the API with buyer authorization', async t => {
+  const base = await setup(t, async () => json({ token_balance: 10000 }));
+  const origin = 'https://l1ttlefox.github.io';
+  const preflight = await fetch(base + '/api/account', {
+    method: 'OPTIONS',
+    headers: {
+      Origin: origin,
+      'Access-Control-Request-Method': 'GET',
+      'Access-Control-Request-Headers': 'authorization',
+    },
+  });
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('access-control-allow-origin'), origin);
+  assert.match(preflight.headers.get('access-control-allow-headers'), /Authorization/i);
+
+  const response = await fetch(base + '/api/account', {
+    headers: { ...headers('key-a'), Origin: origin },
+  });
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('access-control-allow-origin'), origin);
+
+  const denied = await fetch(base + '/api/account', {
+    method: 'OPTIONS',
+    headers: { Origin: 'https://example.org' },
+  });
+  assert.equal(denied.status, 403);
+  assert.equal(denied.headers.has('access-control-allow-origin'), false);
+});
+
 test('generation and history routes cannot invoke upstream', async t => {
   const base = await setup(t, async () => assert.fail('must not contact upstream'));
   for (const path of ['/v1/chat/completions', '/v1/responses', '/v1/messages', '/backend-api/codex', '/v1/balance', '/api/history']) {

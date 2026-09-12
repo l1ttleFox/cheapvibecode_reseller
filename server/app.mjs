@@ -7,11 +7,27 @@ const send = (res, status, data) => {
   res.end(JSON.stringify(data));
 };
 
+const allowedOrigins = new Set([
+  'https://l1ttlefox.github.io',
+]);
+
 export function createApp({ request }) {
   const instructions = instructionCatalog();
   return createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
+    const origin = req.headers.origin;
+    if (allowedOrigins.has(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.setHeader('Vary', 'Origin');
+    }
+    if (req.method === 'OPTIONS') {
+      if (!allowedOrigins.has(origin)) return send(res, 403, { error: 'Origin не разрешён' });
+      res.writeHead(204);
+      return res.end();
+    }
     const controller = new AbortController();
     res.on('close', () => { if (!res.writableFinished) controller.abort(); });
     try {

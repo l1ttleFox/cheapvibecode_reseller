@@ -1,5 +1,9 @@
+const apiUrl = (import.meta.env.VITE_API_URL
+  || (import.meta.env.PROD ? 'https://cheapvibecode-reseller.onrender.com' : '')
+).replace(/\/$/, '');
+
 async function request(path, key, signal) {
-  const response = await fetch(`/api/${path}`, {
+  const response = await fetch(`${apiUrl}/api/${path}`, {
     headers: key ? { Authorization: `Bearer ${key}` } : {},
     signal, cache: 'no-store',
   });
