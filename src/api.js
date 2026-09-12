@@ -1,5 +1,5 @@
 const apiUrl = (import.meta.env.VITE_API_URL
-  || (import.meta.env.PROD ? 'https://cheapvibecode-reseller.onrender.com' : '')
+  || (import.meta.env.PROD ? 'https://relay-ai-ami6.onrender.com' : '')
 ).replace(/\/$/, '');
 const REQUEST_TIMEOUT = 30000;
 
