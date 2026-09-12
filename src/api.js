@@ -1,11 +1,15 @@
 const apiUrl = (import.meta.env.VITE_API_URL
   || (import.meta.env.PROD ? 'https://cheapvibecode-reseller.onrender.com' : '')
 ).replace(/\/$/, '');
+const REQUEST_TIMEOUT = 30000;
 
 async function request(path, key, signal) {
+  const requestSignal = signal
+    ? AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT)])
+    : AbortSignal.timeout(REQUEST_TIMEOUT);
   const response = await fetch(`${apiUrl}/api/${path}`, {
     headers: key ? { Authorization: `Bearer ${key}` } : {},
-    signal, cache: 'no-store',
+    signal: requestSignal, cache: 'no-store',
   });
   const data = await response.json().catch(() => null);
   if (!response.ok) throw new Error(data?.error || `Сервер вернул HTTP ${response.status}`);
